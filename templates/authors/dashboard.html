@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mx-auto mt-8">
+  <h1 class="text-3xl font-semibold mb-6">My articles</h1>
+  <a href="{% url 'authors:article_new' %}" class="btn btn-primary mb-6">+ New article</a>
+  <table class="w-full text-left">
+    <thead><tr><th>Title</th><th>Status</th><th>Updated</th></tr></thead>
+    <tbody>
+      {% for article in object_list %}
+      <tr>
+        <td><a href="{% url 'authors:article_edit' article.slug %}" class="underline">{{ article.title }}</a></td>
+        <td>{{ article.get_status_display }}</td>
+        <td>{{ article.updated_at|default:article.published_at }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No articles yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

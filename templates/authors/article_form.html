@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Edit{% else %}New{% endif %} article{% endblock %}
+
+{% block extra_head %}
+    {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="space-y-8">
+    {% csrf_token %}
+    <div class="grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 space-y-6">
+            <div>
+                {{ form.title.label_tag }}{{ form.title }}
+            </div>
+            <div>
+                {{ form.body }}
+            </div>
+        </div>
+        <div class="space-y-6">
+            <div>
+                {{ form.section.label_tag }}{{ form.section }}
+            </div>
+            <div>
+                {{ form.hero_image.label_tag }}{{ form.hero_image }}
+                <img id="heroPreview" class="mt-2 rounded shadow hidden"/>
+            </div>
+            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+                Save draft
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    // Live hero preview
+    const input = document.getElementById("id_hero_image");
+    const img = document.getElementById("heroPreview");
+    input.addEventListener("change", e => {
+        const [file] = e.target.files;
+        if (file) {
+            img.src = URL.createObjectURL(file);
+            img.classList.remove("hidden");
+        }
+    });
+</script>
+{% endblock %}
