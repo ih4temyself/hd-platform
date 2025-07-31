@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
-from ckeditor.fields import RichTextField
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Section(models.Model):
     name = models.CharField(max_length=64, unique=True)
@@ -23,7 +23,7 @@ class Article(models.Model):
     title = models.CharField(max_length=250)
     slug = models.SlugField(unique=True)
     hero_image = models.ImageField(upload_to="articles/hero/", blank=True, null=True)
-    body = RichTextField()
+    body = CKEditor5Field('Text', config_name='default')
     status = models.CharField(max_length=5, choices=STATUS_CHOICES, default=DRAFT)
     published_at = models.DateTimeField(blank=True, null=True)
 

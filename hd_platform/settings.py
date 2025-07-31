@@ -42,8 +42,7 @@ INSTALLED_APPS = [
     'hd_platform',
     'rest_framework',
     'rest_framework_simplejwt',
-    'ckeditor',
-    'ckeditor_uploader',
+    'django_ckeditor_5'
 ]
 
 MIDDLEWARE = [
@@ -116,11 +115,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CKEditor settings
-CKEDITOR_UPLOAD_PATH = 'uploads/'
-CKEDITOR_CONFIGS = {
+DJANGO_CKEDITOR_5_CONFIGS = {
     'default': {
-        'toolbar': 'full',
-        'height': '600px',
-        'width': 'auto',
+        'toolbar': [
+            'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote',
+            '|', 'undo', 'redo', 'imageUpload', 'mediaEmbed', 'codeBlock', 'insertTable',
+        ],
+        'height': 400,
+        'width': '100%',
     },
 }
