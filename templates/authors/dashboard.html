@@ -1,21 +1,132 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mx-auto mt-8">
-  <h1 class="text-3xl font-semibold mb-6">My articles</h1>
-  <a href="{% url 'authors:article_new' %}" class="btn btn-primary mb-6">+ New article</a>
-  <table class="w-full text-left">
-    <thead><tr><th>Title</th><th>Status</th><th>Updated</th></tr></thead>
-    <tbody>
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold">My Articles</h1>
+    <a href="{% url 'authors:article_new' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+      + New Article
+    </a>
+  </div>
+  
+  {% if object_list %}
+    <div class="grid gap-6">
       {% for article in object_list %}
-      <tr>
-        <td><a href="{% url 'authors:article_edit' article.slug %}" class="underline">{{ article.title }}</a></td>
-        <td>{{ article.get_status_display }}</td>
-        <td>{{ article.updated_at|default:article.published_at }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="3">No articles yet.</td></tr>
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <div class="flex items-center space-x-3 mb-3">
+                <h2 class="text-xl font-semibold">
+                  {% if article.slug %}
+                    <a href="{% url 'authors:article_edit' article.slug %}" class="text-gray-900 hover:text-blue-600">
+                      {{ article.title }}
+                    </a>
+                  {% else %}
+                    <span class="text-gray-900">{{ article.title }}</span>
+                  {% endif %}
+                </h2>
+                <span class="px-3 py-1 rounded-full text-xs font-medium {% if article.status == 'pub' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                  {{ article.get_status_display }}
+                </span>
+              </div>
+              
+              <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                <span>{{ article.section.name }}</span>
+                <span>•</span>
+                <span>Updated: {{ article.updated_at|date:"M d, Y" }}</span>
+                {% if article.published_at %}
+                  <span>•</span>
+                  <span>Published: {{ article.published_at|date:"M d, Y" }}</span>
+                {% endif %}
+              </div>
+              
+              {% if article.body %}
+                <p class="text-gray-600 mb-4">{{ article.body|striptags|truncatewords:30 }}</p>
+              {% endif %}
+            </div>
+            
+            <div class="flex items-center space-x-2 ml-4">
+              {% if article.slug %}
+                <a href="{% url 'authors:article_edit' article.slug %}" 
+                   class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-600 hover:bg-blue-50 transition-colors">
+                  Edit
+                </a>
+                <button onclick="confirmDelete('{{ article.slug }}', '{{ article.title }}')" 
+                        class="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-600 hover:bg-red-50 transition-colors">
+                  Delete
+                </button>
+              {% else %}
+                <span class="text-gray-400 px-3 py-1 rounded border border-gray-300">
+                  No Slug
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       {% endfor %}
-    </tbody>
-  </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <div class="flex justify-center mt-8">
+        <nav class="flex space-x-2">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 border rounded hover:bg-gray-50">Previous</a>
+          {% endif %}
+          
+          <span class="px-3 py-2 border rounded bg-blue-50 text-blue-600">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </span>
+          
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 border rounded hover:bg-gray-50">Next</a>
+          {% endif %}
+        </nav>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-12 bg-gray-50 rounded-lg">
+      <p class="text-gray-500 text-lg mb-4">No articles yet.</p>
+      <a href="{% url 'authors:article_new' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+        Create Your First Article
+      </a>
+    </div>
+  {% endif %}
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full">
+      <h3 class="text-lg font-semibold mb-4">Confirm Delete</h3>
+      <p class="text-gray-600 mb-6">Are you sure you want to delete "<span id="articleTitle"></span>"? This action cannot be undone.</p>
+      <div class="flex justify-end space-x-3">
+        <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+          Cancel
+        </button>
+        <a id="deleteLink" href="#" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          Delete
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDelete(slug, title) {
+  document.getElementById('articleTitle').textContent = title;
+  document.getElementById('deleteLink').href = `/me/${slug}/delete/`;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeDeleteModal();
+  }
+});
+</script>
 {% endblock %}

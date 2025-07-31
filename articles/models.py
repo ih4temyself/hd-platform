@@ -26,10 +26,31 @@ class Article(models.Model):
     body = CKEditor5Field('Text', config_name='default')
     status = models.CharField(max_length=5, choices=STATUS_CHOICES, default=DRAFT)
     published_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)[:50]
+        if not self.slug or self.slug.strip() == '':
+            # Generate slug from title, fallback to timestamp if title is empty
+            if self.title and self.title.strip():
+                base_slug = slugify(self.title)
+                if not base_slug:  # If slugify returns empty string (e.g., non-ASCII characters)
+                    base_slug = f"article-{timezone.now().strftime('%Y%m%d-%H%M%S')}"
+            else:
+                base_slug = f"article-{timezone.now().strftime('%Y%m%d-%H%M%S')}"
+            
+            # Ensure slug is not too long and is unique
+            self.slug = base_slug[:50]
+            
+            # If slug already exists, append a number
+            counter = 1
+            original_slug = self.slug
+            while Article.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+                if len(self.slug) > 50:
+                    self.slug = f"{original_slug[:40]}-{counter}"
+        
         if self.status == self.PUBLISHED and not self.published_at:
             self.published_at = timezone.now()
         super().save(*args, **kwargs)

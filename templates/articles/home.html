@@ -1,13 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <h1>Articles</h1>
-    {% for article in articles %}
-        <div class="article">
-            <h2>{{ article.title }}</h2>
-            <p>{{ article.content|truncatewords:50 }}</p>
+<div class="container mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Latest Articles</h1>
+    
+    {% if articles %}
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for article in articles %}
+                <article class="bg-white rounded-lg shadow-md overflow-hidden">
+                    {% if article.hero_image %}
+                        <img src="{{ article.hero_image.url }}" alt="{{ article.title }}" class="w-full h-48 object-cover">
+                    {% endif %}
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-2">{{ article.title }}</h2>
+                        <p class="text-gray-600 mb-4">{{ article.body|striptags|truncatewords:30 }}</p>
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <span>{{ article.section.name }}</span>
+                            <span>{{ article.published_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
         </div>
-    {% endfor %}
+    {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500 text-lg">No published articles yet.</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
